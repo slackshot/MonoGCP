@@ -1,14 +1,15 @@
-﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+﻿<Properties GitUserInfo="UsingGIT">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="MonoGCP/GoogleCloudPrint.cs">
     <Files>
-      <File FileName="MonoGCP/GoogleCloudPrint.cs" Line="51" Column="5" />
+      <File FileName="MonoGCP/GoogleCloudPrint.cs" Line="231" Column="16" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="MonoGCP.Android" expanded="True" selected="True" />
-          <Node name="MonoGCP.IOS" expanded="True" />
+          <Node name="MonoGCP.Android" expanded="True" />
+          <Node name="MonoGCP.IOS" expanded="True" selected="True" />
+          <Node name="MonoGCP.Mac" expanded="True" />
         </State>
       </Pad>
       <Pad Id="ClassPad">

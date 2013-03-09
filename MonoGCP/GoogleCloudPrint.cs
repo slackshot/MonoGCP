@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.IO;
 using System.ServiceModel.Web;
+using System.Threading.Tasks;
 
 namespace MonoGCP
 {
@@ -19,9 +20,23 @@ namespace MonoGCP
 		public string Source { get; set; }
 		
 		private const int ServiceTimeout = 10000;
-		
 
-		
+		public List<CloudPrinter> Printers = new List<CloudPrinter>();
+
+		public Task<List<CloudPrinter>> GetPrintersAsync ()
+			
+		{
+
+			return Task.Factory.StartNew (delegate {
+				
+				this.GetPrinters ();
+				
+				return Printers;
+				
+			});
+			
+		}
+
 		public CloudPrintJob PrintDocument (string printerId, string title, byte[] document, String mimeType)
 		{
 			try
@@ -83,44 +98,42 @@ namespace MonoGCP
 			}
 		}
 		
-		public CloudPrinters Printers
+		public bool GetPrinters()
 		{
-			get
+			var printers = new CloudPrinters();
+			
+			string authCode;
+			if (!Authorize (out authCode))
+				return false;
+			
+			try
 			{
-				var printers = new CloudPrinters ();
+				var request = (HttpWebRequest)WebRequest.Create ("https://www.google.com/cloudprint/search?output=json");
+				request.Method = "POST";
 				
-				string authCode;
-				if (!Authorize (out authCode))
-				return new CloudPrinters { success = false };
+				// Setup the web request
+				request.ServicePoint.Expect100Continue = false;
 				
-				try
-				{
-					var request = (HttpWebRequest)WebRequest.Create ("https://www.google.com/cloudprint/search?output=json");
-					request.Method = "POST";
-					
-					// Setup the web request
-					request.ServicePoint.Expect100Continue = false;
-					
-					// Add the headers
-					request.Headers.Add ("X-CloudPrint-Proxy", Source);
-					request.Headers.Add ("Authorization", "GoogleLogin auth=" + authCode);
-					
-					request.ContentType = "application/x-www-form-urlencoded";
-					request.ContentLength = 0;
-					
-					var response = (HttpWebResponse)request.GetResponse ();
-					var responseContent = new StreamReader (response.GetResponseStream ()).ReadToEnd ();
-					
-					var serializer = new DataContractJsonSerializer (typeof (CloudPrinters));
-					var ms = new MemoryStream (Encoding.Unicode.GetBytes (responseContent));
-					printers = serializer.ReadObject (ms) as CloudPrinters;
-					
-					return printers;
-				}
-				catch (Exception)
-				{
-					return printers;
-				}
+				// Add the headers
+				request.Headers.Add ("X-CloudPrint-Proxy", Source);
+				request.Headers.Add ("Authorization", "GoogleLogin auth=" + authCode);
+				
+				request.ContentType = "application/x-www-form-urlencoded";
+				request.ContentLength = 0;
+				
+				var response = (HttpWebResponse)request.GetResponse ();
+				var responseContent = new StreamReader (response.GetResponseStream ()).ReadToEnd ();
+				
+				var serializer = new DataContractJsonSerializer (typeof (CloudPrinters));
+				var ms = new MemoryStream (Encoding.Unicode.GetBytes (responseContent));
+				printers = serializer.ReadObject (ms) as CloudPrinters;
+				
+				Printers = printers.printers;
+				return true;
+			}
+			catch (Exception)
+			{
+				return false;
 			}
 		}
 		
@@ -160,50 +173,50 @@ namespace MonoGCP
 	[DataContract]
 	public class CloudPrinter
 	{
-		[DataMember (Order = 0)]
+		[DataMember]
 		public string id { get; set; }
 		
-		[DataMember (Order = 1)]
+		[DataMember]
 		public string name { get; set; }
 		
-		[DataMember (Order = 2)]
+		[DataMember]
 		public string description { get; set; }
 		
-		[DataMember (Order = 3)]
+		[DataMember]
 		public string proxy { get; set; }
 		
-		[DataMember (Order = 4)]
+		[DataMember]
 		public string status { get; set; }
 		
-		[DataMember (Order = 5)]
+		[DataMember]
 		public string capsHash { get; set; }
 		
-		[DataMember (Order = 6)]
+		[DataMember]
 		public string createTime { get; set; }
 		
-		[DataMember (Order = 7)]
+		[DataMember]
 		public string updateTime { get; set; }
-		
-		[DataMember (Order = 8)]
+		                       
+		[DataMember]
 		public string accessTime { get; set; }
 		
-		[DataMember (Order = 9)]
+		[DataMember]
 		public bool confirmed { get; set; }
 		
-		[DataMember (Order = 10)]
+		[DataMember]
 		public int numberOfDocuments { get; set; }
 		
-		[DataMember (Order = 11)]
+		[DataMember]
 		public int numberOfPages { get; set; }
 	}
 
 	[DataContract]
 	public class CloudPrinters
 	{
-		[DataMember (Order = 0)]
+		[DataMember]
 		public bool success { get; set; }
 		
-		[DataMember (Order = 1)]
+		[DataMember]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 		public List<CloudPrinter> printers { get; set; }
 	}
 
@@ -212,10 +225,10 @@ namespace MonoGCP
 	[DataContract]
 	public class CloudPrintJob
 	{
-		[DataMember (Order = 0)]
+		[DataMember] 
 		public bool success { get; set; }
 		
-		[DataMember (Order = 1)]
+		[DataMember] 
 		public string message { get; set; }
 	}
 
