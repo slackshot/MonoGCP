@@ -27,10 +27,10 @@ namespace MonoGCP
 			
 		{
 
-			return Task.Factory.StartNew (delegate {
+			return Task<List<CloudPrinter>>.Factory.StartNew (() =>  {
 				
 				this.GetPrinters ();
-				
+
 				return Printers;
 				
 			});

@@ -2,13 +2,15 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="MonoGCP/GoogleCloudPrint.cs">
     <Files>
-      <File FileName="MonoGCP/GoogleCloudPrint.cs" Line="231" Column="16" />
+      <File FileName="MonoGCP/GoogleCloudPrint.cs" Line="34" Column="21" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="MonoGCP.Android" expanded="True" />
-          <Node name="MonoGCP.IOS" expanded="True" selected="True" />
+          <Node name="MonoGCP.Android" expanded="True">
+            <Node name="GoogleCloudPrint.cs" selected="True" />
+          </Node>
+          <Node name="MonoGCP.IOS" expanded="True" />
           <Node name="MonoGCP.Mac" expanded="True" />
         </State>
       </Pad>
