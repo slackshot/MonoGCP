@@ -36,6 +36,32 @@ namespace MonoGCP
 			});
 			
 		}
+		public Task<CloudPrintShare> PrinterShareAsync (string printerId, string email, bool notify)
+			
+		{
+			
+			return Task<CloudPrintShare>.Factory.StartNew (() =>  {
+				
+
+				
+				return this.PrinterShare(printerId,email,notify);
+				
+			});
+			
+		}
+		public Task<CloudPrintShare> PrinterUnShareAsync (string printerId, string email)
+			
+		{
+			
+			return Task<CloudPrintShare>.Factory.StartNew (() =>  {
+				
+				
+				
+				return this.PrinterUnShare(printerId,email);
+				
+			});
+			
+		}
 		public CloudPrintShare PrinterUnShare (string printerId, string email)
 		{
 			try
