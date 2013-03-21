@@ -36,7 +36,106 @@ namespace MonoGCP
 			});
 			
 		}
-
+		public CloudPrintShare PrinterUnShare (string printerId, string email)
+		{
+			try
+			{
+				string authCode;
+				if (!Authorize (out authCode))
+				return new CloudPrintShare { success = false };
+				
+				var request = (HttpWebRequest)WebRequest.Create ("https://www.google.com/cloudprint/unshare?");
+				request.Method = "POST";
+				
+				// Setup the web request
+				request.ServicePoint.Expect100Continue = false;
+				
+				// Add the headers
+				request.Headers.Add ("X-CloudPrint-Proxy", Source);
+				request.Headers.Add ("Authorization", "GoogleLogin auth=" + authCode);
+				
+				var p = new PostData ();
+				
+				p.Params.Add (new PostDataParam { Name = "printerid", Value = printerId, Type = PostDataParamType.Field });
+				p.Params.Add (new PostDataParam { Name = "email", Value = email, Type = PostDataParamType.Field });
+				
+				var postData = p.GetPostData ();
+				
+				
+				byte[] data = Encoding.UTF8.GetBytes (postData);
+				
+				request.ContentType = "multipart/form-data; boundary=" + p.Boundary;
+				
+				Stream stream = request.GetRequestStream ();
+				stream.Write (data, 0, data.Length);
+				stream.Close ();
+				
+				// Get response
+				var response = (HttpWebResponse)request.GetResponse ();
+				var responseContent = new StreamReader (response.GetResponseStream ()).ReadToEnd ();
+				
+				var serializer = new DataContractJsonSerializer (typeof (CloudPrintShare));
+				var ms = new MemoryStream (Encoding.Unicode.GetBytes (responseContent));
+				var shareJob = serializer.ReadObject (ms) as CloudPrintShare;
+				
+				return shareJob;
+			}
+			catch (Exception ex)
+			{
+				return new CloudPrintShare { success = false, message = ex.Message };
+			}
+		}
+		public CloudPrintShare PrinterShare (string printerId, string email, bool notify)
+		{
+			try
+			{
+				string authCode;
+				if (!Authorize (out authCode))
+				return new CloudPrintShare { success = false };
+				
+				var request = (HttpWebRequest)WebRequest.Create ("https://www.google.com/cloudprint/share?");
+				request.Method = "POST";
+				
+				// Setup the web request
+				request.ServicePoint.Expect100Continue = false;
+				
+				// Add the headers
+				request.Headers.Add ("X-CloudPrint-Proxy", Source);
+				request.Headers.Add ("Authorization", "GoogleLogin auth=" + authCode);
+				
+				var p = new PostData ();
+				
+				p.Params.Add (new PostDataParam { Name = "printerid", Value = printerId, Type = PostDataParamType.Field });
+				p.Params.Add (new PostDataParam { Name = "email", Value = email, Type = PostDataParamType.Field });
+				p.Params.Add (new PostDataParam { Name = "role", Value = "APPENDER", Type = PostDataParamType.Field });
+				p.Params.Add (new PostDataParam { Name = "skip_notification", Value = notify.ToString(), Type = PostDataParamType.Field });
+				
+				var postData = p.GetPostData ();
+				
+				
+				byte[] data = Encoding.UTF8.GetBytes (postData);
+				
+				request.ContentType = "multipart/form-data; boundary=" + p.Boundary;
+				
+				Stream stream = request.GetRequestStream ();
+				stream.Write (data, 0, data.Length);
+				stream.Close ();
+				
+				// Get response
+				var response = (HttpWebResponse)request.GetResponse ();
+				var responseContent = new StreamReader (response.GetResponseStream ()).ReadToEnd ();
+				
+				var serializer = new DataContractJsonSerializer (typeof (CloudPrintShare));
+				var ms = new MemoryStream (Encoding.Unicode.GetBytes (responseContent));
+				var shareJob = serializer.ReadObject (ms) as CloudPrintShare;
+				
+				return shareJob;
+			}
+			catch (Exception ex)
+			{
+				return new CloudPrintShare { success = false, message = ex.Message };
+			}
+		}
 		public CloudPrintJob PrintDocument (string printerId, string title, byte[] document, String mimeType)
 		{
 			try
@@ -220,7 +319,15 @@ namespace MonoGCP
 		public List<CloudPrinter> printers { get; set; }
 	}
 
+	[DataContract]
+	public class CloudPrintShare
+	{
+		[DataMember]
+		public bool success { get; set; }
+		[DataMember]
+		public string message {get; set;}
 
+	}
 
 	[DataContract]
 	public class CloudPrintJob
