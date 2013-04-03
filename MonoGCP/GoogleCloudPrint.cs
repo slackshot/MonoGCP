@@ -29,7 +29,7 @@ namespace MonoGCP
 
 			return Task<List<CloudPrinter>>.Factory.StartNew (() =>  {
 				
-				this.GetPrinters ();
+
 
 				return Printers;
 				
@@ -223,13 +223,13 @@ namespace MonoGCP
 			}
 		}
 		
-		public bool GetPrinters()
+		public CloudPrinters GetPrinters()
 		{
 			var printers = new CloudPrinters();
 			
 			string authCode;
 			if (!Authorize (out authCode))
-				return false;
+				return printers;
 			
 			try
 			{
@@ -252,13 +252,13 @@ namespace MonoGCP
 				var serializer = new DataContractJsonSerializer (typeof (CloudPrinters));
 				var ms = new MemoryStream (Encoding.Unicode.GetBytes (responseContent));
 				printers = serializer.ReadObject (ms) as CloudPrinters;
-				
+
 				Printers = printers.printers;
-				return true;
+				return printers;
 			}
 			catch (Exception)
 			{
-				return false;
+				return printers;
 			}
 		}
 		
