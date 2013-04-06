@@ -36,6 +36,12 @@ namespace MonoGCP
 			});
 			
 		}
+		public Task<CloudPrintJob> PrintAsync(string printerId, string title, byte[] document, String mimeType)
+		{
+			return Task<CloudPrintJob>.Factory.StartNew(() => {
+				return this.PrintDocument(printerId,title,document,mimeType);
+			});
+		}
 		public Task<CloudPrintShare> PrinterShareAsync (string printerId, string email, bool notify)
 			
 		{
