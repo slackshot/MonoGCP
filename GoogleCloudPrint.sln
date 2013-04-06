@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Android", "MonoGCP\Google.Android.csproj", "{C5834160-F525-46AF-BD94-AF5DDEDF622C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.IOS", "MonoGCP.IOS\Google.IOS.csproj", "{FE7B8BC7-DEE3-478C-B459-765195D762E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Google.Mac", "MonoGCP.Mac\Google.Mac.csproj", "{44F71657-2F40-4F30-8F4D-6440E16F9C01}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		AppStore|Any CPU = AppStore|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44F71657-2F40-4F30-8F4D-6440E16F9C01}.AppStore|Any CPU.ActiveCfg = AppStore|Any CPU
+		{44F71657-2F40-4F30-8F4D-6440E16F9C01}.AppStore|Any CPU.Build.0 = AppStore|Any CPU
+		{44F71657-2F40-4F30-8F4D-6440E16F9C01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44F71657-2F40-4F30-8F4D-6440E16F9C01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44F71657-2F40-4F30-8F4D-6440E16F9C01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44F71657-2F40-4F30-8F4D-6440E16F9C01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5834160-F525-46AF-BD94-AF5DDEDF622C}.AppStore|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5834160-F525-46AF-BD94-AF5DDEDF622C}.AppStore|Any CPU.Build.0 = Debug|Any CPU
+		{C5834160-F525-46AF-BD94-AF5DDEDF622C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5834160-F525-46AF-BD94-AF5DDEDF622C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5834160-F525-46AF-BD94-AF5DDEDF622C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5834160-F525-46AF-BD94-AF5DDEDF622C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE7B8BC7-DEE3-478C-B459-765195D762E0}.AppStore|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE7B8BC7-DEE3-478C-B459-765195D762E0}.AppStore|Any CPU.Build.0 = Debug|Any CPU
+		{FE7B8BC7-DEE3-478C-B459-765195D762E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE7B8BC7-DEE3-478C-B459-765195D762E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE7B8BC7-DEE3-478C-B459-765195D762E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE7B8BC7-DEE3-478C-B459-765195D762E0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = MonoGCP\Google.Android.csproj
+	EndGlobalSection
+EndGlobal

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Google
 {
-	public class CloudPrint
+	public class GoogleCloudPrint
 	{
 		public string UserName { get; set; }
 		public string Password { get; set; }
