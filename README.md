@@ -2,7 +2,7 @@ MonoGCP
 =======
 
 
-Credits : Most of the code I lifted from this stackoverflow post by
+Credits : Most of the starting code I lifted from this stackoverflow post by
 
 http://stackoverflow.com/users/592321/deevodavis
 
