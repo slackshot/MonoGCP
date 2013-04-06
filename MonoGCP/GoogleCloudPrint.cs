@@ -11,9 +11,9 @@ using System.IO;
 using System.ServiceModel.Web;
 using System.Threading.Tasks;
 
-namespace MonoGCP
+namespace Google
 {
-	public class GoogleCloudPrint
+	public class CloudPrint
 	{
 		public string UserName { get; set; }
 		public string Password { get; set; }

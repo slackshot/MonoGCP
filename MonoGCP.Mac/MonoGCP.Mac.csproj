@@ -8,7 +8,7 @@
     <ProjectGuid>{44F71657-2F40-4F30-8F4D-6440E16F9C01}</ProjectGuid>
     <ProjectTypeGuids>{42C0BBD9-55CE-4FC1-8D90-A7348ABAFB23};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
-    <RootNamespace>MonoGCP</RootNamespace>
+    <RootNamespace>Google</RootNamespace>
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>
     <AssemblyName>MonoGCP.Mac</AssemblyName>
   </PropertyGroup>
