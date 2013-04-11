@@ -1,6 +1,8 @@
 MonoGCP
 =======
+If you want to support me, or the project, you can always go buy Print Hub at :
 
+https://itunes.apple.com/ca/app/print-hub/id612603224?mt=8
 
 Credits : Most of the starting code I lifted from this stackoverflow post by
 
