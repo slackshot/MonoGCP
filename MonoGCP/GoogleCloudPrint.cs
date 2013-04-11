@@ -11,7 +11,7 @@ using System.IO;
 using System.ServiceModel.Web;
 using System.Threading.Tasks;
 
-namespace Google
+namespace Google.CloudPrint
 {
 	public class GoogleCloudPrint
 	{
@@ -23,15 +23,15 @@ namespace Google
 
 		public List<CloudPrinter> Printers = new List<CloudPrinter>();
 
-		public Task<List<CloudPrinter>> GetPrintersAsync ()
+		public Task<CloudPrinters> GetPrintersAsync ()
 			
 		{
 
-			return Task<List<CloudPrinter>>.Factory.StartNew (() =>  {
+			return Task<CloudPrinters>.Factory.StartNew (() =>  {
 				
 
 
-				return Printers;
+				return GetPrinters();
 				
 			});
 			
