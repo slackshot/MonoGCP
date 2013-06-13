@@ -179,11 +179,11 @@ namespace Google.CloudPrint.Client
             });
         }
 
-        public Task<CloudPrintGenericResponse> SharePrinterAsync(string printerid, string emailAddress, bool notifyUser = true)
+        public Task<CloudPrintGenericResponse> SharePrinterAsync(string printerid, string emailAddress, bool skipNotifyUser = false)
         {
             return Task<CloudPrintGenericResponse>.Factory.StartNew(() =>
             {
-                return SharePrinter(printerid, emailAddress, notifyUser);
+                return SharePrinter(printerid, emailAddress, skipNotifyUser);
             });
         }
 
