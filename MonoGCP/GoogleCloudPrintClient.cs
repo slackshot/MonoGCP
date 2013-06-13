@@ -32,21 +32,22 @@ namespace Google.CloudPrint.Client
     }
 
     class PrinterClient : IPrintProvider
-    {    
+    {
         private const string DEFAULT_BASE_URI = "https://www.google.com/cloudprint/";
+        private const string DEFAULT_SOURCE = "Google-JS";
 
         protected string BaseUriString { get; set; }
-        public Uri BaseUri 
-        { 
-            get 
+        public Uri BaseUri
+        {
+            get
             {
                 if (string.IsNullOrWhiteSpace(this.BaseUriString))
                 {
                     return new Uri(DEFAULT_BASE_URI);
                 }
 
-                return new Uri(this.BaseUriString); 
-            } 
+                return new Uri(this.BaseUriString);
+            }
         }
 
         private NetworkCredential _credentials;
@@ -59,25 +60,33 @@ namespace Google.CloudPrint.Client
         }
 
         public string Source { get; set; }
-        
 
-        public PrinterClient(string username, string password, string source, Uri baseUri = null)
+
+        public PrinterClient(string username, string password, string source = null, Uri baseUri = null)
         {
             _credentials = new NetworkCredential(username, password);
+            if (string.IsNullOrWhiteSpace(source)) source = DEFAULT_SOURCE;
             this.Source = source;
             if (null != baseUri) this.BaseUriString = baseUri.ToString();
         }
 
 
+        private string _authCode;
         private bool CheckAuthorization(out string authCode)
         {
+            if (!String.IsNullOrWhiteSpace(_authCode))
+            {
+                authCode = _authCode;
+                return true;
+            }
+
             var result = false;
             authCode = "";
 
             var queryString = String.Format("https://www.google.com/accounts/ClientLogin?accountType=HOSTED_OR_GOOGLE&Email={0}&Passwd={1}&service=cloudprint&source={2}",
                                              this.Credentials.UserName, this.Credentials.Password, this.Source);
             var request = (HttpWebRequest)WebRequest.Create(queryString);
-            
+
             var response = (HttpWebResponse)request.GetResponse();
             var responseContent = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
@@ -89,7 +98,8 @@ namespace Google.CloudPrint.Client
                 {
                     if (nvsplit[0] == "Auth")
                     {
-                        authCode = nvsplit[1];
+                        _authCode = nvsplit[1];
+                        authCode = _authCode;
                         result = true;
                     }
                 }
@@ -98,10 +108,10 @@ namespace Google.CloudPrint.Client
             return result;
         }
 
-
         private T GetPostDataResult<T>(Uri uri, string methodName, PostData postData = null) where T : class
         {
-            string authCode;
+            string authCode = null;
+
             if (!CheckAuthorization(out authCode))
             {
                 return null;
@@ -129,6 +139,7 @@ namespace Google.CloudPrint.Client
                     byte[] data = Encoding.UTF8.GetBytes(postData.GetPostData());
 
                     request.ContentType = "multipart/form-data; boundary=" + postData.Boundary;
+                    request.ContentLength = data.Length;
 
                     Stream stream = request.GetRequestStream();
                     stream.Write(data, 0, data.Length);
@@ -136,11 +147,11 @@ namespace Google.CloudPrint.Client
                 }
 
                 var response = (HttpWebResponse)request.GetResponse();
-                var responseContent = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                //var responseContent = new StreamReader(response.GetResponseStream()).ReadToEnd();
 
                 var serializer = new DataContractJsonSerializer(typeof(T));
-                var ms = new MemoryStream(Encoding.Unicode.GetBytes(responseContent));
-                result = serializer.ReadObject(ms) as T;
+                //var ms = new MemoryStream(Encoding.UTF8.GetBytes(responseContent));
+                result = serializer.ReadObject(response.GetResponseStream()) as T;
             }
             catch (Exception ex)
             {
@@ -156,7 +167,7 @@ namespace Google.CloudPrint.Client
 
             string strUri = uri.ToString().TrimEnd('/');
 
-            return new Uri(string.Format("{0}/{1}?output=json", strUri, methodName));
+            return new Uri(string.Format("{0}/{1}", strUri, methodName));
         }
 
 
@@ -183,7 +194,7 @@ namespace Google.CloudPrint.Client
                 return UnsharePrinter(printerid, emailAddress);
             });
         }
-        
+
         public Task<GetJobsResponse> GetJobsAsync(string printerid = null)
         {
             return Task<GetJobsResponse>.Factory.StartNew(() =>
@@ -215,7 +226,7 @@ namespace Google.CloudPrint.Client
                 return Search(query, connectionStatus);
             });
         }
-                
+
 
 
         public CloudPrintGenericResponse Submit(SubmitRequest submitRequest)
@@ -230,11 +241,11 @@ namespace Google.CloudPrint.Client
             try
             {
                 var p = new PostData();
-                p.Params.Add(new PostDataParam 
-                { 
-                    Name = "printerid", 
-                    Value = submitRequest.printerid, 
-                    Type = PostDataParamType.Field 
+                p.Params.Add(new PostDataParam
+                {
+                    Name = "printerid",
+                    Value = submitRequest.printerid,
+                    Type = PostDataParamType.Field
                 });
 
                 if (!String.IsNullOrWhiteSpace(submitRequest.contentType))
@@ -251,39 +262,47 @@ namespace Google.CloudPrint.Client
                 {
                     var b64 = Convert.ToBase64String(submitRequest.content);
 
-                    p.Params.Add(new PostDataParam
+                    if (!String.IsNullOrWhiteSpace(b64))
                     {
-                        Name = "content",
-                        Type = PostDataParamType.Field,
-                        Value = "data:" + submitRequest.contentType + ";base64," + b64
-                    });
+                        string mimeType = string.IsNullOrWhiteSpace(submitRequest.contentType) ? submitRequest.contentType : "text/plain";
+
+                        p.Params.Add(new PostDataParam
+                        {
+                            Name = "content",
+                            Type = PostDataParamType.Field,
+                            Value = "data:" + mimeType + ";base64," + b64
+                        });
+                    }
                 }
 
                 if (!String.IsNullOrWhiteSpace(submitRequest.title))
                 {
-                    p.Params.Add(new PostDataParam 
-                    { 
-                        Name = "title", 
-                        Value = submitRequest.title, 
-                        Type = PostDataParamType.Field });
+                    p.Params.Add(new PostDataParam
+                    {
+                        Name = "title",
+                        Value = submitRequest.title,
+                        Type = PostDataParamType.Field
+                    });
                 }
 
                 if (!String.IsNullOrWhiteSpace(submitRequest.capabilities))
                 {
-                    p.Params.Add(new PostDataParam 
-                    { 
-                        Name = "capabilities", 
-                        Value = submitRequest.capabilities, 
-                        Type = PostDataParamType.Field });
+                    p.Params.Add(new PostDataParam
+                    {
+                        Name = "capabilities",
+                        Value = submitRequest.capabilities,
+                        Type = PostDataParamType.Field
+                    });
                 }
 
                 if (!String.IsNullOrWhiteSpace(submitRequest.tag))
                 {
-                    p.Params.Add(new PostDataParam 
-                    { 
-                        Name = "tag", 
-                        Value = submitRequest.tag, 
-                        Type = PostDataParamType.Field });
+                    p.Params.Add(new PostDataParam
+                    {
+                        Name = "tag",
+                        Value = submitRequest.tag,
+                        Type = PostDataParamType.Field
+                    });
                 }
 
                 CloudPrintGenericResponse result
@@ -304,7 +323,7 @@ namespace Google.CloudPrint.Client
             }
         }
 
-        public CloudPrintGenericResponse SharePrinter(string printerid, string emailAddress, bool notifyUser = true)
+        public CloudPrintGenericResponse SharePrinter(string printerid, string emailAddress, bool skipNotifyUser = false)
         {
             CloudPrintGenericResponse response = new CloudPrintGenericResponse();
 
@@ -315,8 +334,8 @@ namespace Google.CloudPrint.Client
                 p.Params.Add(new PostDataParam { Name = "printerid", Value = printerid, Type = PostDataParamType.Field });
                 p.Params.Add(new PostDataParam { Name = "email", Value = emailAddress, Type = PostDataParamType.Field });
                 p.Params.Add(new PostDataParam { Name = "role", Value = "APPENDER", Type = PostDataParamType.Field });
-                p.Params.Add(new PostDataParam { Name = "skip_notification", Value = notifyUser.ToString(), Type = PostDataParamType.Field });
-                
+                p.Params.Add(new PostDataParam { Name = "skip_notification", Value = skipNotifyUser.ToString(), Type = PostDataParamType.Field });
+
                 if (0 >= p.Params.Count()) p = null;
 
                 CloudPrintGenericResponse result
@@ -381,7 +400,7 @@ namespace Google.CloudPrint.Client
                 {
                     p.Params.Add(new PostDataParam { Name = "printerid", Value = printerid, Type = PostDataParamType.Field });
                 }
-                                
+
                 if (0 >= p.Params.Count()) p = null;
 
                 GetJobsResponse result
@@ -425,12 +444,12 @@ namespace Google.CloudPrint.Client
             catch (Exception ex)
             {
                 response.message = ex.Message;
-                response.success = false; 
+                response.success = false;
                 return response;
             }
         }
 
-        public CloudPrintPrinterDetails GetPrinterDetails(string printerid, bool getConnectionStatus = true)
+        public CloudPrintPrinterDetails GetPrinterDetails(string printerid, bool getConnectionStatus = false)
         {
             CloudPrintPrinterDetails response = new CloudPrintPrinterDetails();
 
@@ -466,33 +485,34 @@ namespace Google.CloudPrint.Client
         public SearchCloudPrintersResponse Search(string query = "", ConnectionStatus connection_status = ConnectionStatus.NONE)
         {
             SearchCloudPrintersResponse response = new SearchCloudPrintersResponse();
-            
+
             try
             {
                 var postData = new PostData();
 
                 if (!String.IsNullOrWhiteSpace(query))
                 {
-                    postData.Params.Add(new PostDataParam() 
-                        { 
-                            Name = "q", 
-                            Value = query, 
-                            Type = PostDataParamType.Field });
+                    postData.Params.Add(new PostDataParam()
+                    {
+                        Name = "q",
+                        Value = query,
+                        Type = PostDataParamType.Field
+                    });
                 }
 
                 if (ConnectionStatus.NONE != connection_status)
                 {
-                    postData.Params.Add(new PostDataParam() 
-                        { 
-                            Name = "connection_status", 
-                            Value = connection_status.ToString(), 
-                            Type = PostDataParamType.Field 
-                        });
+                    postData.Params.Add(new PostDataParam()
+                    {
+                        Name = "connection_status",
+                        Value = connection_status.ToString(),
+                        Type = PostDataParamType.Field
+                    });
                 }
 
                 if (0 >= postData.Params.Count()) postData = null;
 
-                SearchCloudPrintersResponse result 
+                SearchCloudPrintersResponse result
                     = GetPostDataResult<SearchCloudPrintersResponse>(this.BaseUri, "search", postData);
 
                 if (null == result)
@@ -559,32 +579,154 @@ namespace Google.CloudPrint.Client
         public int numberOfPages { get; set; }
     }
 
+
+    [DataContract]
+    public class CloudPrinterCapabilityOption
+    {
+        [DataMember]
+        public string name { get; set; }
+        [DataMember(Name = "psk:DisplayName")]
+        public string DisplayName { get; set; }
+        [DataMember]
+        public string @default { get; set; }
+        [DataMember(Name = "psk:ResolutionX")]
+        public string ResolutionX { get; set; }
+        [DataMember(Name = "psk:ResolutionY")]
+        public string ResolutionY { get; set; }
+        [DataMember(Name = "psk:MediaSizeWidth")]
+        public string MediaSizeWidth { get; set; }
+        [DataMember(Name = "psk:MediaSizeHeight")]
+        public string MediaSizeHeight { get; set; }
+    }
+
+    [DataContract]
+    public class CloudPrinterCapability
+    {
+        [DataMember]
+        public string name { get; set; }
+        [DataMember(Name = "psf:SelectionType")]
+        public string SelectionType { get; set; }
+        [DataMember(Name = "psk:DisplayName")]
+        public string DisplayName { get; set; }
+        [DataMember(Name = "psf:DataType")]
+        public string DataType { get; set; }
+        [DataMember(Name = "psf:UnitType")]
+        public string UnitType { get; set; }
+        [DataMember(Name = "psf:DefaultValue")]
+        public string DefaultValue { get; set; }
+        [DataMember(Name = "psf:MinValue")]
+        public string MinValue { get; set; }
+        [DataMember(Name = "psf:MaxValue")]
+        public string MaxValue { get; set; }
+        [DataMember]
+        public string type { get; set; }
+        [DataMember]
+        public List<CloudPrinterCapabilityOption> options { get; set; }
+    }
+
+    [DataContract]
+    public class CloudPrinterAccess
+    {
+        [DataMember]
+        public string membership { get; set; }
+        [DataMember]
+        public string email { get; set; }
+        [DataMember]
+        public string name { get; set; }
+        [DataMember]
+        public string role { get; set; }
+        [DataMember]
+        public string type { get; set; }
+        [DataMember]
+        public string is_pending { get; set; }
+    }
+
+
     [DataContract]
     public class CloudPrintPrinterDetails : CloudPrintGenericResponse
     {
         [DataMember]
-        public string name { get; set; }
+        public List<CloudPrintPrinterDetailItem> printers { get; set; }
+    }
+
+
+    [DataContract]
+    public class CloudPrintPrinterDetailItem
+    {
+        [DataMember]
+        public string createTime { get; set; }
+
+        [DataMember]
+        public string model { get; set; }
+
+        [DataMember]
+        public string accessTime { get; set; }
+
+        [DataMember]
+        public string gcpVersion { get; set; }
+
+        [DataMember]
+        public string ownerId { get; set; }
+
+        [DataMember]
+        public string isTosAccepted { get; set; }
+
+        [DataMember]
+        public string type { get; set; }
+
+        [DataMember]
+        public string id { get; set; }
 
         [DataMember]
         public string description { get; set; }
 
         [DataMember]
+        public string defaultDisplayName { get; set; }
+
+        [DataMember]
+        public string name { get; set; }
+
+        [DataMember]
         public string proxy { get; set; }
+
+        [DataMember]
+        public string capsFormat { get; set; }
+
+        [DataMember]
+        public List<string> tags { get; set; }
+
+        [DataMember]
+        public string updateUrl { get; set; }
+
+        [DataMember]
+        public string supportedContentTypes { get; set; }
 
         [DataMember]
         public string status { get; set; }
 
         [DataMember]
-        public string tags { get; set; }
+        public string updateTime { get; set; }
 
         [DataMember]
-        public string capabilities { get; set; }
+        public string capsHash { get; set; }
 
         [DataMember]
-        public string access { get; set; }
+        public List<CloudPrinterAccess> access { get; set; }
+
+        [DataMember]
+        public string manufacturer { get; set; }
 
         [DataMember]
         public string connectionStatus { get; set; }
+
+        [DataMember]
+        public string uuid { get; set; }
+
+        [DataMember]
+        public List<CloudPrinterCapability> capabilities { get; set; }
+
+        [DataMember]
+        public string displayName { get; set; }
     }
 
     [DataContract]
@@ -602,6 +744,21 @@ namespace Google.CloudPrint.Client
 
         [DataMember]
         public string printerid { get; set; }
+
+        [DataMember]
+        public string printerName { get; set; }
+
+        [DataMember]
+        public string printerType { get; set; }
+
+        [DataMember]
+        public string message { get; set; }
+
+        [DataMember]
+        public string numberOfPages { get; set; }
+
+        [DataMember]
+        public string ownerId { get; set; }
 
         [DataMember]
         public string title { get; set; }
@@ -625,12 +782,29 @@ namespace Google.CloudPrint.Client
         public string status { get; set; }
 
         [DataMember]
-        public string tags { get; set; }
+        public List<string> tags { get; set; }
     }
+
+    [DataContract]
+    public class CloudPrintRequestDetails
+    {
+        [DataMember]
+        public string time { get; set; }
+        [DataMember]
+        public List<String> users { get; set; }
+        [DataMember]
+        public Dictionary<string, string> @params { get; set; }
+        [DataMember]
+        public string user { get; set; }
+    }
+
 
     [DataContract]
     public class CloudPrintGenericResponse
     {
+        [DataMember]
+        public CloudPrintRequestDetails request { get; set; }
+
         [DataMember]
         public bool success { get; set; }
 
@@ -639,10 +813,13 @@ namespace Google.CloudPrint.Client
 
         [DataMember]
         public string message { get; set; }
+
+        [DataMember]
+        public string xsrf_token { get; set; }
     }
 
     [DataContract]
-    public class CloudPrintGenericRequest 
+    public class CloudPrintGenericRequest
     {
         [DataMember]
         public string printerid { get; set; }
@@ -665,6 +842,6 @@ namespace Google.CloudPrint.Client
 
         [DataMember]
         public string tag { get; set; }
-    }    
+    }
 
 }
